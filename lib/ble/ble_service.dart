@@ -3,13 +3,18 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 abstract class BleService {
   Stream<List<BleDevice>> scanForDevices({Duration timeout});
+  Stream<BluetoothAdapterState> get adapterState;
   Future<void> stopScan();
   Future<void> connect(String deviceId, {Duration timeout});
-  Future<int?> readBattery(String deviceId); // 0x180F → 0x2A19
+  Future<int?> readBattery(String deviceId); 
+  Future<List<BluetoothService>> getServices(String deviceId);
   Future<void> disconnect(String deviceId);
 }
 
 class FlutterBluePlusBleService implements BleService {
+  @override
+  Stream<BluetoothAdapterState> get adapterState => FlutterBluePlus.adapterState;
+
   @override
   Stream<List<BleDevice>> scanForDevices({Duration timeout = const Duration(seconds: 10)}) {
     FlutterBluePlus.startScan(timeout: timeout);
@@ -39,6 +44,10 @@ class FlutterBluePlusBleService implements BleService {
     }
     return null;
   }
+
+  @override
+  Future<List<BluetoothService>> getServices(String deviceId) =>
+      BluetoothDevice.fromId(deviceId).discoverServices();
 
   @override
   Future<void> disconnect(String deviceId) => BluetoothDevice.fromId(deviceId).disconnect();
